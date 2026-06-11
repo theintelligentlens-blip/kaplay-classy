@@ -6,6 +6,35 @@ The format is (mostly) based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.0-alpha.1] - 2026-06-11 — KAPLAY Classy
+
+The first release of **kaplay-classy**: a fork of KAPLAY v4000 (alpha 27.1) with
+a 100% object-oriented, tree-shakeable public API. See
+[MIGRATION.md](./MIGRATION.md) for the full mapping from classic KAPLAY.
+
+### Added
+
+- `Game` class — boots the engine; subsystems as instances (`assets`, `input`,
+  `audio`, `camera`, `scenes`)
+- `GameObject` base class with lifecycle overrides, component forwarding,
+  auto-attaching property setters, dependency injection/ordering, and a
+  statically-typed `GameObject.with()` / `game.add([...])`
+- `Component` base class + typed class wrappers for every component
+- `Scene` classes with parameters typechecked against `onEnter()`
+- `Draw` class for immediate-mode drawing
+- `kaplay-classy/debug` subpath export for the on-screen debug view
+- Tree-shakeable package (`sideEffects` limited to the debug subpath); lazy
+  built-in assets; opt-in `quadtreeBroadphase()` / `hashGridBroadphase()`
+
+### Removed
+
+- The global `kaplay()` context and all `window` globals
+- Plugins, `kaplayTypes()`/`types` option, burp mode, the kaboom build
+
+---
+
+The KAPLAY changelog below is preserved from upstream.
+
 - Breaking changes are marked with: **(!)**.
 - [Jump to v3001 changelog](#changelog-for-v3001).
 

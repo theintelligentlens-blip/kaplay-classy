@@ -3,23 +3,32 @@
 import * as esbuild from "esbuild";
 import fs from "fs";
 import path from "path";
-import { DIST_DIR, SRC_PATH } from "../constants.ts";
+import { CDN_PATH, DIST_DIR, SRC_PATH } from "../constants.ts";
 
 const pkgFile = path.join(import.meta.dirname, "../../package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgFile, "utf-8"));
 const pkgVersion = pkg.version;
 
-export const fmts = (name: string): esbuild.BuildOptions[] => [
+// The IIFE (CDN) build bundles the full library + debug view; the ESM/CJS
+// builds are the tree-shakeable package entries.
+const builds: esbuild.BuildOptions[] = [
     {
         format: "iife",
         globalName: "kaplay",
-        outfile: `${DIST_DIR}/${name}.js`,
+        entryPoints: [CDN_PATH],
+        outfile: `${DIST_DIR}/kaplay.js`,
     },
-    { format: "cjs", outfile: `${DIST_DIR}/${name}.cjs` },
-    { format: "esm", outfile: `${DIST_DIR}/${name}.mjs` },
+    {
+        format: "esm",
+        entryPoints: [SRC_PATH],
+        outfile: `${DIST_DIR}/kaplay.mjs`,
+    },
+    {
+        format: "cjs",
+        entryPoints: [SRC_PATH],
+        outfile: `${DIST_DIR}/kaplay.cjs`,
+    },
 ];
-
-const builds = fmts("kaplay");
 
 export const config: esbuild.BuildOptions = {
     bundle: true,
@@ -34,11 +43,32 @@ export const config: esbuild.BuildOptions = {
         ".glsl": "text",
         ".mp3": "binary",
     },
-    entryPoints: [SRC_PATH],
     define: {
         "KAPLAY_VERSION": JSON.stringify(pkgVersion),
     },
 };
+
+// The `kaplay-classy/debug` subpath is a thin wrapper over the main bundle,
+// so the debug view shares the same module state as the engine.
+function writeDebugEntry() {
+    fs.writeFileSync(
+        `${DIST_DIR}/debug.mjs`,
+        `import { installDebugView } from "./kaplay.mjs";\n`
+            + `export { installDebugView, uninstallDebugView } from "./kaplay.mjs";\n`
+            + `installDebugView();\n`,
+    );
+    fs.writeFileSync(
+        `${DIST_DIR}/debug.cjs`,
+        `const { installDebugView, uninstallDebugView } = require("./kaplay.cjs");\n`
+            + `installDebugView();\n`
+            + `module.exports = { installDebugView, uninstallDebugView };\n`,
+    );
+    fs.writeFileSync(
+        `${DIST_DIR}/debug.d.ts`,
+        `export { installDebugView, uninstallDebugView } from "./doc";\n`,
+    );
+    console.log("-> dist/debug.{mjs,cjs,d.ts}");
+}
 
 export async function build(fast = false) {
     if (fast) {
@@ -62,5 +92,5 @@ export async function build(fast = false) {
                 sourcemap: true,
             }).then(() => console.log(`-> ${fmt.outfile}`));
         }),
-    );
+    ).then(writeDebugEntry);
 }

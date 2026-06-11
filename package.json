@@ -11,7 +11,10 @@
     "url": "git+https://github.com/theintelligentlens-blip/kaplay-classy.git"
   },
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/debug.mjs",
+    "./dist/debug.cjs"
+  ],
   "main": "./dist/kaplay.cjs",
   "module": "./dist/kaplay.mjs",
   "types": "./dist/doc.d.ts",
@@ -25,6 +28,16 @@
       "require": {
         "types": "./dist/doc.d.ts",
         "default": "./dist/kaplay.cjs"
+      }
+    },
+    "./debug": {
+      "import": {
+        "types": "./dist/debug.d.ts",
+        "default": "./dist/debug.mjs"
+      },
+      "require": {
+        "types": "./dist/debug.d.ts",
+        "default": "./dist/debug.cjs"
       }
     }
   },
@@ -44,8 +57,8 @@
   ],
   "files": [
     "dist/",
-    "kaplay-classy.png",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "MIGRATION.md"
   ],
   "scripts": {
     "start": "node scripts/start.ts",

@@ -30,7 +30,7 @@ import { vec2 } from "../math/math";
 import { calcTransform } from "../math/various";
 import type { Vec2 } from "../math/Vec2";
 import { _k } from "../shared";
-import type { Anchor, Comp, GameObj, Tag } from "../types";
+import type { Anchor, Comp, GameObj, MergeComps, Tag } from "../types";
 import { Component } from "./Component";
 import type { Game } from "./Game";
 
@@ -45,6 +45,37 @@ export type GameObjectPart =
     | Comp
     | Tag
     | Record<string, any>;
+
+/**
+ * Extracts the component state type from a {@link GameObjectPart}: the comp
+ * interface from a Component class, a raw comp as-is, plain data objects
+ * as-is, tags as nothing.
+ *
+ * @group Game Objects
+ */
+export type CompsOf<P> = P extends Component<infer C> ? C
+    : P extends Tag ? never
+    : P;
+
+type StripIndexSignature<T> = {
+    [K in keyof T as string extends K ? never : K]: T[K];
+};
+
+/**
+ * A {@link GameObject} with statically-known component members, as returned
+ * by `GameObject.with()` and `game.add([...])`:
+ *
+ *     const obj = game.add([new Sprite("bean"), new Health(8)]);
+ *     obj.hp--; // typed!
+ *
+ * Unlike plain `GameObject`, it has no `any` index signature — only the
+ * members of the components it was created with.
+ *
+ * @group Game Objects
+ */
+export type TypedGameObject<P> =
+    & StripIndexSignature<GameObject>
+    & MergeComps<CompsOf<P>>;
 
 const unwrap = (part: GameObjectPart): Comp | Tag | Record<string, any> =>
     part instanceof Component ? part.state : part;
@@ -188,6 +219,20 @@ export class GameObject {
         return proxy;
     }
 
+    /**
+     * Create a GameObject with statically-typed component members:
+     *
+     *     const bean = game.add(GameObject.with(new Sprite("bean"), new Health(8)));
+     *     bean.hp--; // typed!
+     */
+    static with<P extends GameObjectPart[]>(
+        ...parts: [...P]
+    ): TypedGameObject<P[number]> {
+        return new GameObject(...parts) as unknown as TypedGameObject<
+            P[number]
+        >;
+    }
+
     // #region Lifecycle (override these)
 
     /** Called once, right after the object is added to the game. */
@@ -269,7 +314,7 @@ export class GameObject {
      * Add a child object.
      */
     add<T extends GameObject>(child: T): T;
-    add(parts: GameObjectPart[]): GameObject;
+    add<P extends GameObjectPart[]>(parts: [...P]): TypedGameObject<P[number]>;
     add(child: GameObject | GameObjectPart[]): GameObject {
         const obj = Array.isArray(child) ? new GameObject(...child) : child;
         return obj._attach(this.raw, this.game);

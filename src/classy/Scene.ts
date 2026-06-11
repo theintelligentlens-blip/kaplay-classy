@@ -49,9 +49,20 @@ export abstract class Scene {
  *
  * @group Scenes
  */
-export type SceneClass = (new(game: Game) => Scene) & { sceneName?: string };
+export type SceneClass<T extends Scene = Scene> =
+    & (new(game: Game) => T)
+    & { sceneName?: string };
 
-const sceneId = (target: SceneClass | string): string =>
+/**
+ * The parameters a Scene class expects, inferred from its `onEnter()`
+ * signature. Makes `go(Gameplay, score)` typecheck against
+ * `Gameplay.onEnter(score: number)`.
+ *
+ * @group Scenes
+ */
+export type SceneArgs<T extends Scene> = Parameters<T["onEnter"]>;
+
+const sceneId = (target: SceneClass<any> | string): string =>
     typeof target === "string"
         ? target
         : target.sceneName ?? target.name;
@@ -96,13 +107,23 @@ export class SceneManager {
         scene(name, def);
     }
 
-    /** Switch to a scene, by class or id. */
-    go(target: SceneClass | string, ...args: unknown[]): void {
+    /**
+     * Switch to a scene, by class or id. When passing a class, the args are
+     * typechecked against the scene's `onEnter()` signature.
+     */
+    go<T extends Scene>(target: SceneClass<T>, ...args: SceneArgs<T>): void;
+    go(target: string, ...args: unknown[]): void;
+    go(target: SceneClass<any> | string, ...args: unknown[]): void {
         go(sceneId(target), ...args);
     }
 
-    /** Switch to a scene, remembering the current one for `pop()`. */
-    push(target: SceneClass | string, ...args: unknown[]): void {
+    /**
+     * Switch to a scene, remembering the current one for `pop()`. When
+     * passing a class, the args are typechecked against `onEnter()`.
+     */
+    push<T extends Scene>(target: SceneClass<T>, ...args: SceneArgs<T>): void;
+    push(target: string, ...args: unknown[]): void;
+    push(target: SceneClass<any> | string, ...args: unknown[]): void {
         pushScene(sceneId(target), ...args);
     }
 

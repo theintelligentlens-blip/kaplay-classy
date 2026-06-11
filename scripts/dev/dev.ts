@@ -2,15 +2,21 @@
 // @ts-check
 
 import esbuild from "esbuild";
-import { config, fmts } from "../lib/build.ts";
+import { CDN_PATH, DIST_DIR } from "../constants.ts";
+import { config } from "../lib/build.ts";
 import { serve } from "./serve.ts";
 
 export async function dev() {
     serve();
 
+    const outfile = `${DIST_DIR}/kaplay.js`;
+
     const ctx = await esbuild.context({
         ...config,
-        ...fmts("kaplay")[0],
+        format: "iife",
+        globalName: "kaplay",
+        entryPoints: [CDN_PATH],
+        outfile,
         sourcemap: true,
         minify: false,
         minifyIdentifiers: false,
@@ -22,7 +28,7 @@ export async function dev() {
                 name: "logger",
                 setup(b) {
                     b.onEnd(() => {
-                        console.log(`-> ${fmts("kaplay")[0].outfile}`);
+                        console.log(`-> ${outfile}`);
                     });
                 },
             },

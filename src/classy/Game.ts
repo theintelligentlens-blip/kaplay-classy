@@ -29,7 +29,11 @@ import type { GameObj, KAPLAYOpt } from "../types";
 import { AssetManager } from "./AssetManager";
 import { AudioManager } from "./AudioManager";
 import { Camera } from "./Camera";
-import { GameObject, type GameObjectPart } from "./GameObject";
+import {
+    GameObject,
+    type GameObjectPart,
+    type TypedGameObject,
+} from "./GameObject";
 import { InputManager } from "./InputManager";
 import { SceneManager } from "./Scene";
 
@@ -127,10 +131,11 @@ export class Game {
 
     /**
      * Add a game object to the scene — either a {@link GameObject} (or
-     * subclass) instance, or a plain list of components/tags.
+     * subclass) instance, or a plain list of components/tags. Lists return
+     * a {@link TypedGameObject} with statically-known component members.
      */
     add<T extends GameObject>(obj: T): T;
-    add(parts: GameObjectPart[]): GameObject;
+    add<P extends GameObjectPart[]>(parts: [...P]): TypedGameObject<P[number]>;
     add(obj: GameObject | GameObjectPart[]): GameObject {
         const gameObject = Array.isArray(obj) ? new GameObject(...obj) : obj;
         return gameObject._attach(this.root, this);

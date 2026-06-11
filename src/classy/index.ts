@@ -6,6 +6,11 @@ export { Camera } from "./Camera";
 export * from "./Component";
 export { Draw } from "./Draw";
 export { Game, type GameOpt } from "./Game";
-export { GameObject, type GameObjectPart } from "./GameObject";
+export {
+    type CompsOf,
+    GameObject,
+    type GameObjectPart,
+    type TypedGameObject,
+} from "./GameObject";
 export { InputManager } from "./InputManager";
-export { Scene, type SceneClass, SceneManager } from "./Scene";
+export { Scene, type SceneArgs, type SceneClass, SceneManager } from "./Scene";

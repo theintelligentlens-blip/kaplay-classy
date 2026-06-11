@@ -1,7 +1,7 @@
 # 🎩 KAPLAY Classy — The OOP Game Library for JavaScript & TypeScript
 
 <div align="center">
-  <img src="./kaplay-classy.png">
+  <img src="https://raw.githubusercontent.com/theintelligentlens-blip/kaplay-classy/master/kaplay-classy.png">
 </div>
 
 **KAPLAY Classy** is an **object-oriented** take on
@@ -180,6 +180,52 @@ A few naming notes:
 - Immediate-mode drawing lives on the `Draw` class (`Draw.rect(...)`,
   `Draw.circle(...)`) for use inside `draw()` overrides.
 
+Coming from classic KAPLAY? The **[migration guide](./MIGRATION.md)** maps every
+old pattern to its classy equivalent.
+
+## 🔎 TypeScript that knows your game
+
+Objects built from component lists are statically typed — no casts, no
+declarations:
+
+```ts
+const obj = game.add([new Sprite("bean"), new Health(8)]);
+obj.hp--; // number ✓
+obj.frame; // number ✓ (from Sprite)
+obj.typo; // ✗ compile error
+
+// same thing outside of add():
+const bean = GameObject.with(new Area(), new Body());
+bean.jump(); // ✓
+```
+
+Scene arguments are checked against the scene's `onEnter()` signature:
+
+```ts
+class Gameplay extends Scene {
+    onEnter(score: number, mode: string) {}
+}
+
+game.scenes.go(Gameplay, 1, "hard"); // ✓
+game.scenes.go(Gameplay); // ✗ compile error: missing args
+```
+
+## 🔬 The debug view
+
+The on-screen inspector (F1: hitboxes, object inspection, `debug.log()`
+messages) is an opt-in import, so its rendering code never ships in production
+builds unless you ask for it:
+
+```js
+import "kaplay-classy/debug";
+// or, immune to aggressive tree shaking:
+import { installDebugView } from "kaplay-classy";
+installDebugView();
+```
+
+The CDN/script-tag build has it preinstalled. `game.debug` (pause, time scale,
+fps, `log()`) is always available either way.
+
 ## 🪶 Lightweight by design
 
 The package is fully **tree-shakeable** (`"sideEffects": false`, no globals, no
@@ -231,12 +277,12 @@ npm install kaplay-classy
 - [x] Scene classes (`Scene`, `game.scenes.add/go/push/pop`)
 - [x] Asset, input, audio and camera managers as instance members
 - [x] Tree-shakeable, side-effect-free package with lazy built-in assets
-- [ ] Optional debug inspector as a subpath export (`kaplay-classy/debug`)
-- [ ] Typed scene parameters
-- [ ] Stronger component typing on `GameObject` subclasses (beyond the
-      forwarding proxy)
-- [ ] Migration guide from classic KAPLAY
-- [ ] npm release
+- [x] Optional debug inspector as a subpath export (`kaplay-classy/debug`)
+- [x] Typed scene parameters (`go(Gameplay, ...)` checks `onEnter()`)
+- [x] Stronger component typing (`game.add([...])` and `GameObject.with()`
+      return statically-typed objects)
+- [x] Migration guide from classic KAPLAY ([MIGRATION.md](./MIGRATION.md))
+- [x] npm release — package built, verified and ready to `npm publish`
 
 Contributions and design feedback are welcome — open an issue or a discussion!
 
