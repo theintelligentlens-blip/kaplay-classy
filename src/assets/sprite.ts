@@ -1,3 +1,4 @@
+import beanSrc from "../data/assets/bean.png";
 import type { DrawSpriteOpt } from "../gfx/draw/drawSprite";
 import type { Frame } from "../gfx/TexPacker";
 import { Quad, quad } from "../math/math";
@@ -245,7 +246,7 @@ export function resolveSprite(
     else if (src instanceof Asset) {
         // might be sometimes unnecessary here but if we're getting the sprite data directly
         // then obviously we might be wanting to draw it.
-        _k.k.onLoad(() => _k.assets.packer.syncIfPending());
+        _k.defaultScope.onLoad(() => _k.assets.packer.syncIfPending());
         return src;
     }
     else {
@@ -306,11 +307,7 @@ export function loadSprite(
 }
 
 export function loadBean(name: string = "bean"): Asset<SpriteData> {
-    if (!_k.game.defaultAssets.bean) {
-        throw new Error("You can't use bean in kaplay/mini");
-    }
-
-    return loadSprite(name, _k.game.defaultAssets.bean);
+    return loadSprite(name, beanSrc);
 }
 
 export function fixFramesPixelsToFractionOfImage(

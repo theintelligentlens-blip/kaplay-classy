@@ -2,32 +2,43 @@ import { beforeAll, describe, expect, test } from "vitest";
 
 // [subject] should [behavior when condition]
 
-describe("Components validation in add()", async () => {
+describe("Component validation in add()", async () => {
     beforeAll(async () => {
         await page.addScriptTag({ path: "dist/kaplay.js" });
     });
 
     test(
-        "add() should throw an error when a body() without pos() is passed",
+        "add() should auto-attach Pos when a Body is passed without it",
         async () => {
-            async function useBodyWithoutPos() {
+            const result = await page.evaluate(() => {
+                const game = new kaplay.Game();
+                const obj = game.add([new kaplay.Body()]);
+                return { hasPos: obj.has("pos"), hasBody: obj.has("body") };
+            });
+
+            expect(result).toEqual({ hasPos: true, hasBody: true });
+        },
+        20000,
+    );
+
+    test(
+        "add() should throw an error when a non-injectable dependency is missing",
+        async () => {
+            async function useDoubleJumpWithoutBody() {
                 return page.evaluate(() => {
-                    const k = kaplay();
+                    const game = new kaplay.Game();
 
                     return new Promise((res, rej) => {
-                        k.onError((e) => {
-                            console.log(e);
+                        game.onError((e) => {
                             rej(e.message);
                         });
 
-                        k.add([
-                            k.body(),
-                        ]);
+                        game.add([new kaplay.DoubleJump()]);
                     });
                 });
             }
 
-            await expect(useBodyWithoutPos).rejects.toThrow(/requires/);
+            await expect(useDoubleJumpWithoutBody).rejects.toThrow(/requires/);
         },
         20000,
     );

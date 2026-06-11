@@ -1,175 +1,88 @@
-/**
- * @file Scenes
- * @description How to use scene system
- * @difficulty 0
- * @tags basics
- * @minver 3001.0
- * @category basics
- * @test
- */
+// @ts-check
+// @test
+// Class-based scenes: extend Scene, register the class, go() by class.
 
-// Extend our game with multiple scenes
+const { Game, Scene, GameObject, Sprite, Area, Text, AnchorComp, vec2 } =
+    kaplay;
 
-// Start game
-kaplay();
+const game = new Game({ background: "#20214a" });
 
-// Load assets
-loadSprite("bean", "/sprites/bean.png");
-loadSprite("coin", "/sprites/coin.png");
-loadSprite("spike", "/sprites/spike.png");
-loadSprite("grass", "/sprites/grass.png");
-loadSprite("ghosty", "/sprites/ghosty.png");
-loadSprite("portal", "/sprites/portal.png");
-loadSound("score", "/sounds/score.mp3");
-loadSound("portal", "/sounds/portal.mp3");
+game.assets.loadSprite("bean", "/sprites/bean.png");
+game.assets.loadSprite("apple", "/sprites/apple.png");
 
-setGravity(2400);
+class Title extends Scene {
+    onEnter() {
+        const label = this.game.add([
+            new Text("click the apples!\npress space to start", {
+                align: "center",
+            }),
+            new AnchorComp("center"),
+        ]);
+        label.pos = this.game.center;
 
-const SPEED = 480;
-
-// Design 2 levels
-const LEVELS = [
-    [
-        "@  ^ $$ >",
-        "=========",
-    ],
-    [
-        "@   $   >",
-        "=   =   =",
-    ],
-];
-
-// Define a scene called "game". The callback will be run when we go() to the scene
-// Scenes can accept argument from go()
-scene("game", ({ levelIdx, score }) => {
-    // Use the level passed, or first level
-    const level = addLevel(LEVELS[levelIdx || 0], {
-        tileWidth: 64,
-        tileHeight: 64,
-        pos: vec2(100, 200),
-        tiles: {
-            "@": () => [
-                sprite("bean"),
-                area(),
-                body(),
-                anchor("bot"),
-                "player",
-            ],
-            "=": () => [
-                sprite("grass"),
-                area(),
-                body({ isStatic: true }),
-                anchor("bot"),
-            ],
-            "$": () => [
-                sprite("coin"),
-                area({ isSensor: true }),
-                anchor("bot"),
-                "coin",
-            ],
-            "^": () => [
-                sprite("spike"),
-                area({ isSensor: true }),
-                anchor("bot"),
-                "danger",
-            ],
-            ">": () => [
-                sprite("portal"),
-                area({ isSensor: true }),
-                anchor("bot"),
-                "portal",
-            ],
-        },
-    });
-
-    // Get the player object from tag
-    const player = level.get("player")[0];
-
-    // Movements
-    onKeyPress("space", () => {
-        if (player.isGrounded()) {
-            player.jump();
-        }
-    });
-
-    onKeyDown("left", () => {
-        player.move(-SPEED, 0);
-    });
-
-    onKeyDown("right", () => {
-        player.move(SPEED, 0);
-    });
-
-    player.onCollide("danger", () => {
-        player.pos = level.tile2Pos(0, 0);
-        // Go to "lose" scene when we hit a "danger"
-        go("lose");
-    });
-
-    player.onCollide("coin", (coin) => {
-        destroy(coin);
-        play("score");
-        score++;
-        scoreLabel.text = score;
-    });
-
-    // Fall death
-    player.onUpdate(() => {
-        if (player.pos.y >= 480) {
-            go("lose");
-        }
-    });
-
-    // Enter the next level on portal
-    player.onCollide("portal", () => {
-        play("portal");
-        if (levelIdx < LEVELS.length - 1) {
-            // If there's a next level, go() to the same scene but load the next level
-            go("game", {
-                levelIdx: levelIdx + 1,
-                score: score,
-            });
-        }
-        else {
-            // Otherwise we have reached the end of game, go to "win" scene!
-            go("win", { score: score });
-        }
-    });
-
-    // Score counter text
-    const scoreLabel = add([
-        text(score),
-        pos(12),
-    ]);
-});
-
-scene("lose", () => {
-    add([
-        text("You Lose"),
-        pos(12),
-    ]);
-
-    // Press any key to go back
-    onKeyPress(start);
-});
-
-scene("win", ({ score }) => {
-    add([
-        text(`You grabbed ${score} coins!!!`, {
-            width: width(),
-        }),
-        pos(12),
-    ]);
-
-    onKeyPress(start);
-});
-
-function start() {
-    // Start with the "game" scene, with initial parameters
-    go("game", {
-        levelIdx: 0,
-        score: 0,
-    });
+        this.game.input.onKeyPress("space", () => {
+            this.game.scenes.go(Gameplay, 0);
+        });
+    }
 }
 
-start();
+class Apple extends GameObject {
+    constructor(game) {
+        super(new Sprite("apple"), new Area(), "apple");
+        this.pos = vec2(
+            40 + Math.random() * (game.width - 80),
+            40 + Math.random() * (game.height - 80),
+        );
+    }
+}
+
+class Gameplay extends Scene {
+    score = 0;
+
+    onEnter(score = 0) {
+        this.score = score;
+
+        const scoreLabel = this.game.add([new Text(`score: ${this.score}`)]);
+        scoreLabel.pos = vec2(16, 16);
+
+        for (let i = 0; i < 5; i++) {
+            this.game.add(new Apple(this.game));
+        }
+
+        this.game.onClick("apple", (apple) => {
+            apple.destroy();
+            this.score++;
+            scoreLabel.text = `score: ${this.score}`;
+
+            if (this.game.get("apple").length === 0) {
+                this.game.scenes.go(Win, this.score);
+            }
+        });
+    }
+
+    onLeave(next) {
+        console.log(`leaving gameplay for ${next}`);
+    }
+}
+
+class Win extends Scene {
+    onEnter(score) {
+        const label = this.game.add([
+            new Text(`you win!\nscore: ${score}\npress space to play again`, {
+                align: "center",
+            }),
+            new AnchorComp("center"),
+        ]);
+        label.pos = this.game.center;
+
+        this.game.input.onKeyPress("space", () => {
+            this.game.scenes.go(Gameplay, 0);
+        });
+    }
+}
+
+game.scenes.add(Title);
+game.scenes.add(Gameplay);
+game.scenes.add(Win);
+
+game.scenes.go(Title);

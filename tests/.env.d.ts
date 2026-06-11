@@ -1,4 +1,4 @@
-import type { kaplay as KAPLAY } from "../src/kaplay";
+import type * as KAPLAY from "../src/index";
 
 declare global {
     const kaplay: typeof KAPLAY;

@@ -456,7 +456,7 @@ export function sprite(
             }
             else {
                 // The sprite may be loaded later in the script, check again when all resources have been loaded
-                _k.k.onLoad(() =>
+                _k.defaultScope.onLoad(() =>
                     setSpriteData(this, resolveSprite(src)!.data)
                 );
             }

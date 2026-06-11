@@ -2,8 +2,6 @@ import type { FixedSpeedOption } from "./app/app";
 import type { ButtonsDef } from "./app/inputBindings";
 import type { Asset } from "./assets/asset";
 import type { ShaderData, Uniform } from "./assets/shader";
-import type { KAPLAYCtx } from "./core/contextType";
-import type { TypesOpt } from "./core/taf";
 import type { GameObjRaw } from "./ecs/entity/GameObjRaw";
 import type {
     BroadPhaseType,
@@ -42,10 +40,6 @@ type RemoveCompProps<T> = Defined<
  */
 export type MergeComps<T> = MergeObj<RemoveCompProps<T>>;
 
-export type MergePlugins<T extends PluginList<any>> = MergeObj<
-    ReturnType<T[number]>
->;
-
 /**
  * A component list.
  *
@@ -53,7 +47,6 @@ export type MergePlugins<T extends PluginList<any>> = MergeObj<
  * @subgroup Component Types
  */
 export type CompList<T extends any | undefined> = (T | Tag)[];
-export type PluginList<T> = Array<T | KAPLAYPlugin<any>>;
 
 /**
  * A key.
@@ -400,18 +393,6 @@ export interface KAPLAYOpt {
      */
     focus?: boolean;
     /**
-     * If import all KAPLAY functions to global (default true).
-     */
-    global?: boolean;
-    /**
-     * List of plugins to import.
-     */
-    plugins?: PluginList<any>;
-    /**
-     * Enter burp mode.
-     */
-    burp?: boolean;
-    /**
      * Make components ids be added as tags.
      *
      * That means .is() will return true for components with that id.
@@ -464,23 +445,6 @@ export interface KAPLAYOpt {
      */
     defaultLifetimeScope?: "scene" | "app";
     /**
-     * TypeScript Advanced Features (TAF) are a series of options for TypeScript
-     * only features.
-     *
-     * It should be created using the helper function `kaplayTypes`.
-     *
-     * ```ts
-     * kaplay({
-     *    types: kaplayTypes<Opt<{
-     *        scenes: {}
-     *    }>>();
-     * });
-     * ```
-     *
-     * @since v4000.0
-     */
-    types?: TypesOpt;
-    /**
      * Random generator to be used by the game.
      * You can select one of the three built-in random generators: "lce", "xorshift32", or "alea".
      *
@@ -506,33 +470,6 @@ export interface KAPLAYOpt {
      */
     rng?: RNGConfig;
 }
-
-/**
- * A plugin for KAPLAY.
- *
- * @example
- * ```js
- * // a plugin that adds a new function to KAPLAY
- * const myPlugin = (k) => ({
- *    myFunc: () => {
- *       k.debug.log("hello from my plugin")
- *   }
- * })
- *
- * // use the plugin
- * kaplay({
- *   plugins: [ myPlugin ]
- * })
- *
- * // now you can use the new function
- * myFunc()
- * ```
- *
- * @group Plugins
- */
-export type KAPLAYPlugin<T> = (
-    k: KAPLAYCtx,
-) => T | ((...args: any) => (k: KAPLAYCtx) => T);
 
 /**
  * @group Rendering

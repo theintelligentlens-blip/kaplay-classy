@@ -9,6 +9,7 @@ import {
     objectTransformNeedsUpdate,
 } from "../../ecs/entity/GameObjRaw";
 import { exists, isPaused } from "../../ecs/entity/utils";
+import { height, width } from "../../gfx/stack";
 import type { GameObj } from "../../types";
 import { Rect, vec2 } from "../math";
 import { calcTransform } from "../various";
@@ -995,4 +996,21 @@ export class BaseQuadtree<T> {
     ): void {
         this.gatherPairs([], pairCb);
     }
+}
+
+/**
+ * A quadtree broadphase factory, for the `broadPhaseCollisionAlgorithm`
+ * option. Only bundled when imported:
+ *
+ *     new Game({ broadPhaseCollisionAlgorithm: quadtreeBroadphase() });
+ *
+ * @group Math
+ */
+export function quadtreeBroadphase(maxObjects = 8, maxLevels = 8) {
+    return () =>
+        new Quadtree(
+            new Rect(vec2(0, 0), width(), height()),
+            maxObjects,
+            maxLevels,
+        );
 }

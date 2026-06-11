@@ -231,7 +231,7 @@ export function text(t: string, opt: TextCompOpt = {}): TextComp {
         },
 
         add(this: GameObj<TextComp>) {
-            _k.k.onLoad(() => update(this));
+            _k.defaultScope.onLoad(() => update(this));
         },
 
         draw(this: GameObj<TextComp>) {

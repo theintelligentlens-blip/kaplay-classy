@@ -10,9 +10,9 @@ import {
 } from "../../ecs/entity/GameObjRaw";
 import { exists, isPaused } from "../../ecs/entity/utils";
 import { drawRect } from "../../gfx/draw/drawRect";
-import { loadIdentity, pushMatrix } from "../../gfx/stack";
+import { height, loadIdentity, pushMatrix, width } from "../../gfx/stack";
 import type { GameObj } from "../../types";
-import { type Rect, vec2 } from "../math";
+import { Rect, vec2 } from "../math";
 import { calcTransform } from "../various";
 import type { Vec2 } from "../Vec2";
 
@@ -305,4 +305,24 @@ export class HashGrid {
 
 function isValidCollisionObject(obj: GameObj) {
     return exists(obj) && (obj.isSensor || obj.has("body")) && !isPaused(obj);
+}
+
+/**
+ * A hash-grid broadphase factory, for the `broadPhaseCollisionAlgorithm`
+ * option. Only bundled when imported:
+ *
+ *     new Game({ broadPhaseCollisionAlgorithm: hashGridBroadphase() });
+ *
+ * @group Math
+ */
+export function hashGridBroadphase(opt: HashGridOpt = {}) {
+    return () =>
+        new HashGrid(
+            new Rect(
+                vec2(-DEF_HASH_GRID_SIZE, -DEF_HASH_GRID_SIZE),
+                width() + DEF_HASH_GRID_SIZE * 2,
+                height() + DEF_HASH_GRID_SIZE * 2,
+            ),
+            opt,
+        );
 }

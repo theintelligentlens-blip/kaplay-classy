@@ -13,7 +13,6 @@ export function serve() {
     app.set("views", path.join(import.meta.dirname, "views"));
     app.use("/dist", express.static("dist"));
     app.use(express.static("examples"));
-    app.use("/tests/playtests", express.static("tests/playtests"));
 
     // Expose crew urls
     for (const [name, asset] of Object.entries(assets)) {
@@ -52,30 +51,19 @@ export function serve() {
         const examples = (await fs.readdir("examples"))
             .filter((p) => !p.startsWith(".") && p.endsWith(".js"))
             .map((d) => path.basename(d, ".js"));
-        const playtests = (await fs.readdir(path.join("tests", "playtests")))
-            .filter((p) => !p.startsWith(".") && p.endsWith(".js"))
-            .map((d) => path.basename(d, ".js"));
 
-        res.render("examplesList", { examples, playtests: playtests });
+        res.render("examplesList", { examples });
     });
 
     app.get("/:name", async (req, res) => {
         const examples = (await fs.readdir("examples"))
             .filter((p) => !p.startsWith(".") && p.endsWith(".js"))
             .map((d) => path.basename(d, ".js"));
-        const playtests = (await fs.readdir(path.join("tests", "playtests")))
-            .filter((p) => !p.startsWith(".") && p.endsWith(".js"))
-            .map((d) => path.basename(d, ".js"));
-
-        const allPlayTests = [...examples, ...playtests];
 
         const name = req.params.name;
-        const isPlayTest = playtests.includes(name);
-        const examplePath = isPlayTest
-            ? `tests/playtests/${name}.js`
-            : `${name}.js`;
+        const examplePath = `${name}.js`;
 
-        if (!allPlayTests.includes(name)) {
+        if (!examples.includes(name)) {
             res.status(404);
             res.send(`example not found: ${name}`);
             return;
@@ -84,14 +72,12 @@ export function serve() {
         res.render("game", {
             name,
             path: examplePath,
-            prev: allPlayTests[
-                (allPlayTests.indexOf(name) - 1 + allPlayTests.length)
-                % allPlayTests.length
+            prev: examples[
+                (examples.indexOf(name) - 1 + examples.length)
+                % examples.length
             ],
-            next: allPlayTests[
-                (allPlayTests.indexOf(name) + 1) % allPlayTests.length
-            ],
-            vscode: `vscode://file/${path.resolve(examplePath)}`,
+            next: examples[(examples.indexOf(name) + 1) % examples.length],
+            vscode: `vscode://file/${path.resolve("examples", examplePath)}`,
         });
     });
 

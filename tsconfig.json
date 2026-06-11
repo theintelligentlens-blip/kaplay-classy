@@ -7,11 +7,8 @@
     "noImplicitThis": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "emitDeclarationOnly": true,
-    "declaration": true,
-    "declarationMap": true,
+    "noEmit": true,
     "allowImportingTsExtensions": true,
-    "declarationDir": "dist/declaration",
     // always use import type for type only imports
     "verbatimModuleSyntax": true,
     "strict": true,
@@ -24,7 +21,6 @@
     "scripts/**/*"
   ],
   "exclude": [
-    "src/index.ts",
     "./tests/**"
   ]
 }

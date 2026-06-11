@@ -1,4 +1,5 @@
 import { ASCII_CHARS } from "../constants/general";
+import happyFontSrc from "../data/assets/happy.png";
 import type { Frame } from "../gfx/TexPacker";
 import { _k } from "../shared";
 import type { TexFilter } from "../types";
@@ -113,11 +114,7 @@ export function loadHappy(
     fontName: string = "happy",
     opt?: LoadBitmapFontOpt,
 ) {
-    if (!_k.game.defaultAssets.happy) {
-        throw new Error("You can't use loadHappy with kaplay/mini");
-    }
-
-    return loadBitmapFont(fontName, _k.game.defaultAssets.happy, 28, 36, {
+    return loadBitmapFont(fontName, happyFontSrc, 28, 36, {
         filter: "nearest",
         ...opt,
     });

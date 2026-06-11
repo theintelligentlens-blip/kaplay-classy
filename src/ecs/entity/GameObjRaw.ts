@@ -1,7 +1,6 @@
 // The E of ECS
 
 import type { AppEvents } from "../../app/app";
-import type { KAPLAYCtx } from "../../core/contextType";
 import { throwError } from "../../core/errors";
 import type { GameObjEventNames } from "../../events/eventMap";
 import {
@@ -9,6 +8,7 @@ import {
     KEventController,
     type KEventHandler,
 } from "../../events/events";
+import type { ScopeHandlers } from "../../events/scopeHandlers";
 import type { EventHandlersInAppButNotAddedInGameObjRaw } from "../../events/scopes";
 import { drawMasked } from "../../gfx/draw/drawMasked";
 import { beginPicture, endPicture, Picture } from "../../gfx/draw/drawPicture";
@@ -482,30 +482,30 @@ export interface GameObjRaw {
      * @since v4000.0
      */
     onUntag(action: (tag: string) => void): KEventController;
-    onKeyDown: KAPLAYCtx["onKeyDown"];
-    onKeyPress: KAPLAYCtx["onKeyPress"];
-    onKeyPressRepeat: KAPLAYCtx["onKeyPressRepeat"];
-    onKeyRelease: KAPLAYCtx["onKeyRelease"];
-    onCharInput: KAPLAYCtx["onCharInput"];
-    onMouseDown: KAPLAYCtx["onMouseDown"];
-    onMousePress: KAPLAYCtx["onMousePress"];
-    onMouseRelease: KAPLAYCtx["onMouseRelease"];
-    onMouseMove: KAPLAYCtx["onMouseMove"];
-    onTouchStart: KAPLAYCtx["onTouchStart"];
-    onTouchMove: KAPLAYCtx["onTouchMove"];
-    onTouchEnd: KAPLAYCtx["onTouchEnd"];
-    onScroll: KAPLAYCtx["onScroll"];
-    onGamepadButtonDown: KAPLAYCtx["onGamepadButtonDown"];
-    onGamepadButtonPress: KAPLAYCtx["onGamepadButtonPress"];
-    onGamepadButtonRelease: KAPLAYCtx["onGamepadButtonRelease"];
-    onGamepadStick: KAPLAYCtx["onGamepadStick"];
-    onButtonDown: KAPLAYCtx["onButtonDown"];
-    onButtonPress: KAPLAYCtx["onButtonPress"];
-    onButtonRelease: KAPLAYCtx["onButtonRelease"];
-    onTabShow: KAPLAYCtx["onTabShow"];
-    onTabHide: KAPLAYCtx["onTabHide"];
-    onShow: KAPLAYCtx["onShow"];
-    onHide: KAPLAYCtx["onHide"];
+    onKeyDown: ScopeHandlers["onKeyDown"];
+    onKeyPress: ScopeHandlers["onKeyPress"];
+    onKeyPressRepeat: ScopeHandlers["onKeyPressRepeat"];
+    onKeyRelease: ScopeHandlers["onKeyRelease"];
+    onCharInput: ScopeHandlers["onCharInput"];
+    onMouseDown: ScopeHandlers["onMouseDown"];
+    onMousePress: ScopeHandlers["onMousePress"];
+    onMouseRelease: ScopeHandlers["onMouseRelease"];
+    onMouseMove: ScopeHandlers["onMouseMove"];
+    onTouchStart: ScopeHandlers["onTouchStart"];
+    onTouchMove: ScopeHandlers["onTouchMove"];
+    onTouchEnd: ScopeHandlers["onTouchEnd"];
+    onScroll: ScopeHandlers["onScroll"];
+    onGamepadButtonDown: ScopeHandlers["onGamepadButtonDown"];
+    onGamepadButtonPress: ScopeHandlers["onGamepadButtonPress"];
+    onGamepadButtonRelease: ScopeHandlers["onGamepadButtonRelease"];
+    onGamepadStick: ScopeHandlers["onGamepadStick"];
+    onButtonDown: ScopeHandlers["onButtonDown"];
+    onButtonPress: ScopeHandlers["onButtonPress"];
+    onButtonRelease: ScopeHandlers["onButtonRelease"];
+    onTabShow: ScopeHandlers["onTabShow"];
+    onTabHide: ScopeHandlers["onTabHide"];
+    onShow: ScopeHandlers["onShow"];
+    onHide: ScopeHandlers["onHide"];
 }
 
 export type InternalGameObjRaw = GameObjRaw & {

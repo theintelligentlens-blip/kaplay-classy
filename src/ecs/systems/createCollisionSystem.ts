@@ -1,12 +1,8 @@
-import { DEF_HASH_GRID_SIZE } from "../../constants/general";
-import { height, width } from "../../gfx/stack";
 import { gjkShapeIntersection } from "../../math/gjk";
-import { Rect, vec2 } from "../../math/math";
+import { Rect } from "../../math/math";
 import { minkowskiRectShapeIntersection } from "../../math/minkowski";
 import { satShapeIntersection } from "../../math/sat";
 import type { BroadPhaseAlgorithm } from "../../math/spatial";
-import { HashGrid } from "../../math/spatial/hashgrid";
-import { Quadtree } from "../../math/spatial/quadtree";
 import {
     SweepAndPruneHorizontal,
     SweepAndPruneVertical,
@@ -15,32 +11,27 @@ import { _k } from "../../shared";
 import type { GameObj } from "../../types";
 import { type AreaComp, usesArea } from "../components/physics/area";
 import { Collision } from "./Collision";
-export type BroadPhaseType = "sap" | "sapv" | "quadtree" | "grid";
+/**
+ * The broadphase algorithm: the built-in sweep-and-prune ("sap" horizontal,
+ * "sapv" vertical), or a factory returning a custom implementation — like
+ * {@link quadtreeBroadphase} or {@link hashGridBroadphase}, which are only
+ * bundled when imported.
+ */
+export type BroadPhaseType = "sap" | "sapv" | (() => BroadPhaseAlgorithm);
 export type NarrowPhaseType = "gjk" | "sat" | "box";
 
 export const createCollisionSystem = (
-    { broad = "sap", narrow = "gjk", opt = {} }: {
+    { broad = "sap", narrow = "gjk" }: {
         broad?: BroadPhaseType;
         narrow?: NarrowPhaseType;
-        opt?: any;
     } = {},
 ) => {
-    const broadPhaseIntersection: BroadPhaseAlgorithm = broad === "sap"
-        ? new SweepAndPruneHorizontal()
-        : broad === "sapv"
-        ? new SweepAndPruneVertical()
-        : broad === "quadtree"
-        ? new Quadtree(new Rect(vec2(0, 0), width(), height()), 8, 8)
-        : broad == "grid"
-        ? new HashGrid(
-            new Rect(
-                vec2(-DEF_HASH_GRID_SIZE, -DEF_HASH_GRID_SIZE),
-                width() + DEF_HASH_GRID_SIZE * 2,
-                height() + DEF_HASH_GRID_SIZE * 2,
-            ),
-            opt,
-        )
-        : new SweepAndPruneHorizontal();
+    const broadPhaseIntersection: BroadPhaseAlgorithm =
+        typeof broad === "function"
+            ? broad()
+            : broad === "sapv"
+            ? new SweepAndPruneVertical()
+            : new SweepAndPruneHorizontal();
     const narrowPhaseIntersection = narrow === "gjk"
         ? gjkShapeIntersection
         : narrow === "sat"

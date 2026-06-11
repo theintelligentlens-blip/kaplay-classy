@@ -1,21 +1,17 @@
 {
-  "name": "kaplay",
-  "description": "KAPLAY is a JavaScript & TypeScript game library that helps you make games fast and fun!",
-  "version": "4000.0.0-alpha.27.1",
+  "name": "kaplay-classy",
+  "description": "KAPLAY Classy is an object-oriented JavaScript & TypeScript game library, based on KAPLAY.",
+  "version": "0.1.0-alpha.1",
   "license": "MIT",
-  "homepage": "https://v4000.kaplayjs.com/",
   "bugs": {
-    "url": "https://github.com/kaplayjs/kaplay/issues"
-  },
-  "funding": {
-    "type": "opencollective",
-    "url": "https://opencollective.com/kaplay"
+    "url": "https://github.com/theintelligentlens-blip/kaplay-classy/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kaplayjs/kaplay.git"
+    "url": "git+https://github.com/theintelligentlens-blip/kaplay-classy.git"
   },
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/kaplay.cjs",
   "module": "./dist/kaplay.mjs",
   "types": "./dist/doc.d.ts",
@@ -30,14 +26,6 @@
         "types": "./dist/doc.d.ts",
         "default": "./dist/kaplay.cjs"
       }
-    },
-    "./global": "./dist/declaration/global.js"
-  },
-  "typesVersions": {
-    "*": {
-      "global": [
-        "./dist/declaration/global.d.ts"
-      ]
     }
   },
   "keywords": [
@@ -51,24 +39,23 @@
     "canvas",
     "game library",
     "kaplay",
-    "kaboom",
-    "kaboomjs"
+    "kaplay-classy",
+    "oop"
   ],
   "files": [
     "dist/",
-    "kaplay.webp",
+    "kaplay-classy.png",
     "CHANGELOG.md"
   ],
   "scripts": {
     "start": "node scripts/start.ts",
     "dev": "node scripts/start.ts",
-    "build": "pnpm generate:index && pnpm generate:dts && node scripts/build.ts",
+    "build": "pnpm generate:dts && node scripts/build.ts",
     "check": "tsc",
     "lint": "eslint .",
     "fmt": "dprint fmt",
     "fmt:commit": "dprint fmt && git diff --quiet --cached && echo \"No changes\" || (git add . && git commit -m \"style: fmt\")",
-    "generate:index": "node scripts/generateIndex.js",
-    "generate:dts": "dts-bundle-generator -o dist/doc.d.ts src/index.ts",
+    "generate:dts": "dts-bundle-generator --export-referenced-types=false -o dist/doc.d.ts src/index.ts",
     "test": "node scripts/test.ts",
     "test:vite": "vitest --typecheck",
     "prepare": "npm run build"

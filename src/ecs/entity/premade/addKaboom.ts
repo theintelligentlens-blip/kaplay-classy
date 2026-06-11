@@ -1,3 +1,6 @@
+import { loadSprite } from "../../../assets/sprite";
+import boomSpriteSrc from "../../../data/assets/boom.png";
+import kaSpriteSrc from "../../../data/assets/ka.png";
 import type { Vec2 } from "../../../math/Vec2";
 import { _k } from "../../../shared";
 import type { CompList, GameObj } from "../../../types";
@@ -31,8 +34,12 @@ export interface BoomOpt {
 }
 
 export function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
-    if (!_k.game.defaultAssets.boom || !_k.game.defaultAssets.ka) {
-        throw new Error("You can't use addKaboom with kaplay/mini");
+    // The explosion sprites are only bundled (and loaded) if addKaboom is used
+    if (!_k.game.defaultAssets.boom) {
+        _k.game.defaultAssets.boom = loadSprite(null, boomSpriteSrc);
+    }
+    if (!_k.game.defaultAssets.ka) {
+        _k.game.defaultAssets.ka = loadSprite(null, kaSpriteSrc);
     }
 
     const kaboom = _k.game.root.add([

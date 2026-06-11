@@ -1,198 +1,266 @@
-# 🎮 KAPLAY.js — A JavaScript & TypeScript Game Library
+# 🎩 KAPLAY Classy — The OOP Game Library for JavaScript & TypeScript
 
 <div align="center">
-  <img src="./kaplay.webp">
+  <img src="./kaplay-classy.png">
 </div>
 
-KAPLAY is the **fun-first**, 2D game library for **JavaScript** and
-**TypeScript**. It’s made to **feel like a game** while you're making games.
-Simple. Fast. Powerful.
+**KAPLAY Classy** is an **object-oriented** take on
+[KAPLAY](https://github.com/kaplayjs/kaplay) — the fun-first 2D game library for
+**JavaScript** and **TypeScript**. Same speed, same fun, but built around
+**classes, inheritance, and strong typing** instead of free-floating global
+functions.
 
-✨ Whether you’re a beginner or an experienced dev, **KAPLAY** comes with its
-own **web-based editor** — the [KAPLAYGROUND](https://play.kaplayjs.com) — so
-you can try code instantly, and learn with more than **90 examples**!
+> [!IMPORTANT]\
+> KAPLAY Classy is in **early development** (based on KAPLAY `v4000` alpha). The
+> OOP core is implemented and working, but the API may still change.
+
+## 🤔 Why Classy?
+
+Classic KAPLAY composes game objects from component functions in a global
+namespace. That's great for quick prototypes, but as games grow you often want:
+
+- 🧱 **Real classes** — extend `GameObject`, override lifecycle methods, use
+  `super`, and model your game with the OOP patterns you already know.
+- 🎯 **No global soup** — nothing is ever injected into `window`. Everything
+  hangs off your `Game` instance: `game.assets`, `game.input`, `game.audio`,
+  `game.camera`, `game.scenes`.
+- 🔡 **First-class TypeScript** — components are classes with typed state, and
+  `game.add(new Player())` gives you back a `Player`.
+- 🧪 **Testability** — entities are classes you can construct and inspect like
+  any other class.
 
 ## 🎲 Quick Overview
 
 ```js
+import { Game, Sprite } from "kaplay-classy";
+
 // Start a game
-kaplay({
+const game = new Game({
     background: "#6d80fa",
 });
 
 // Load an image
-loadSprite("bean", "https://play.kaplayjs.com/bean.png");
+game.assets.loadSprite("bean", "https://play.kaplayjs.com/bean.png");
 
-// Add a sprite to the scene
-add([
-    sprite("bean"), // it renders as a sprite
-]);
+// Add a game object to the scene
+const bean = game.add([new Sprite("bean")]);
+
+// Position is a property — the Pos component is attached automatically
+bean.pos = game.center;
 ```
 
-Game objects are composed from simple, powerful components:
+Define your own entities by extending `GameObject` — components are typed
+building blocks you pass to the constructor or attach with `use()`:
 
 ```js
-// Add a Game Obj to the scene from a list of components
-const player = add([
-    rect(40, 40), // it renders as a rectangle
-    pos(100, 200), // it has a position (coordinates)
-    area(), // it has a collider
-    body(), // it is a physical body which will respond to physics
-    health(8), // it has 8 health points
-    // Give it tags for easier group behaviors
-    "friendly",
-    // Give plain objects fields for associated data
-    {
-        dir: vec2(-1, 0),
-        dead: false,
-        speed: 240,
-    },
-]);
-```
+import {
+    Area,
+    Body,
+    Game,
+    GameObject,
+    Health,
+    Rect,
+    vec2,
+} from "kaplay-classy";
 
-Blocky imperative syntax for describing behaviors
+class Player extends GameObject {
+    dir = vec2(-1, 0);
+    dead = false;
+    speed = 240;
 
-```js
-// .onCollide() comes from "area" component
-player.onCollide("enemy", () => {
-    // .hp comes from "health" component
-    player.hp--;
-});
-
-// check fall death
-player.onUpdate(() => {
-    if (player.pos.y >= height()) {
-        destroy(player);
+    constructor() {
+        super(
+            new Rect(40, 40), // it renders as a rectangle
+            new Area(), // it has a collider
+            new Body(), // it is a physical body which responds to physics
+            new Health(8), // it has 8 health points
+            "friendly", // tags for easy group behaviors
+        );
+        this.pos = vec2(100, 200); // it has a position (coordinates)
     }
-});
+}
 
-// All objects with tag "enemy" will move to the left
-onUpdate("enemy", (enemy) => {
+const player = game.add(new Player());
+```
+
+Behaviors are lifecycle methods and event handlers. Component state and methods
+(like `hp` from `Health` or `jump()` from `Body`) are available directly on the
+object:
+
+```js
+class Player extends GameObject {
+    // ...
+
+    onAdd() {
+        // .onCollide() comes from the Area component
+        this.onCollide("enemy", () => {
+            // .hp comes from the Health component
+            this.hp--;
+        });
+
+        // move up while "w" is held down
+        this.game.input.onKeyDown("w", () => {
+            this.move(0, -100);
+        });
+    }
+
+    // override the per-frame update
+    update() {
+        // check fall death
+        if (this.pos.y >= this.game.height) {
+            this.destroy();
+        }
+    }
+}
+
+// all objects tagged "enemy" move to the left
+game.onUpdate("enemy", (enemy) => {
     enemy.move(-400, 0);
 });
-
-// move up 100 pixels per second every frame when "w" key is held down
-onKeyDown("w", () => {
-    player.move(0, 100);
-});
 ```
+
+Scenes are classes too:
+
+```js
+import { Scene } from "kaplay-classy";
+
+class Title extends Scene {
+    onEnter() {
+        this.game.input.onKeyPress("space", () => {
+            this.game.scenes.go(Gameplay, 0);
+        });
+    }
+}
+
+class Gameplay extends Scene {
+    onEnter(score) {
+        this.game.add(new Player());
+    }
+
+    onLeave(nextScene) {
+        console.log(`heading to ${nextScene}`);
+    }
+}
+
+game.scenes.add(Title);
+game.scenes.add(Gameplay);
+game.scenes.go(Title);
+```
+
+And custom components extend `Component`:
+
+```js
+import { Component } from "kaplay-classy";
+
+class Wobble extends Component {
+    constructor(strength = 24) {
+        super({
+            id: "wobble",
+            require: ["pos"],
+            update() {
+                this.pos.y += Math.sin(game.time * 4) * strength * game.dt;
+            },
+        });
+    }
+}
+
+game.add([new Sprite("bean"), new Wobble()]);
+```
+
+A few naming notes:
+
+- Component classes that would clash with a core type keep a `Comp` suffix:
+  `AnchorComp`, `ColorComp`, `OutlineComp`, `MaskComp`, `ShaderComp`,
+  `PictureComp`. (You rarely need `ColorComp` — setting `obj.color`,
+  `obj.opacity`, `obj.pos`, `obj.angle`, `obj.scale` or `obj.z` attaches the
+  matching component automatically.)
+- Geometry classes are exported as `RectShape`, `CircleShape`, `EllipseShape`,
+  `PolygonShape`, `LineShape` and `PointShape`, since the plain names belong to
+  the drawing components.
+- Immediate-mode drawing lives on the `Draw` class (`Draw.rect(...)`,
+  `Draw.circle(...)`) for use inside `draw()` overrides.
+
+## 🪶 Lightweight by design
+
+The package is fully **tree-shakeable** (`"sideEffects": false`, no globals, no
+import-time side effects), so with any modern bundler you only ship what you
+use:
+
+- Importing `Game` doesn't drag in every component — a minimal game (`Game` +
+  `Sprite` + `Area` + `Body`) bundles to **~58 KB gzipped** instead of the full
+  ~99 KB.
+- Built-in assets (the `burp()` sound, `addKaboom()` explosion sprites, the
+  bean, the happy font) are only bundled — and only decoded — if you actually
+  import and call them.
+- Optional subsystems (levels, pathfinding, AI, particles, constraints,
+  video...) cost nothing unless you import their component classes.
+- Alternative collision broadphases are opt-in factories: the default
+  sweep-and-prune is built in; `quadtreeBroadphase()` / `hashGridBroadphase()`
+  are only bundled when imported.
+- Prefab deserialization factories register lazily, on first prefab use.
+
+Check the cost of your imports anytime with `node scripts/size.mjs`.
 
 ## 🖥️ Installation
 
-### 🚀 Using `create-kaplay`
-
-The fastest way to get started:
+KAPLAY Classy is not published to npm yet. For now, build it from source:
 
 ```sh
-npx create-kaplay my-game
+git clone https://github.com/theintelligentlens-blip/kaplay-classy.git
+cd kaplay-classy
+pnpm install
+pnpm dev # examples playground at http://localhost:4000
 ```
 
-Then open [http://localhost:5173](http://localhost:5173) and edit `src/game.js`.
+> Requires **Node.js >= 24** and [pnpm](https://pnpm.io/).
 
-### 📦 Install with package manager
+Once published, installing will look like:
 
 ```sh
-npm install kaplay
+npm install kaplay-classy
 ```
 
-```sh
-yarn add kaplay
-```
+## 🗺️ Roadmap
 
-```sh
-pnpm add kaplay
-```
+- [x] Core `Game` class replacing the global `kaplay()` context — no globals,
+      ever
+- [x] `GameObject` base class with inheritance-friendly lifecycle hooks
+      (`onAdd`, `update`, `fixedUpdate`, `draw`, `onDestroy`)
+- [x] Components as classes (`Sprite`, `Area`, `Body`, `Health`, ...) with typed
+      state and automatic dependency resolution
+- [x] Scene classes (`Scene`, `game.scenes.add/go/push/pop`)
+- [x] Asset, input, audio and camera managers as instance members
+- [x] Tree-shakeable, side-effect-free package with lazy built-in assets
+- [ ] Optional debug inspector as a subpath export (`kaplay-classy/debug`)
+- [ ] Typed scene parameters
+- [ ] Stronger component typing on `GameObject` subclasses (beyond the
+      forwarding proxy)
+- [ ] Migration guide from classic KAPLAY
+- [ ] npm release
 
-```sh
-bun add kaplay
-```
-
-> You will need a bundler like [Vite](https://vitejs.dev/) or
-> [ESBuild](https://esbuild.github.io/) to use KAPLAY in your project. Learn how
-> to setup ESbuild
-> [here](https://kaplayjs.com/guides/install/#setup-your-own-nodejs-environment).
-
-### 🌐 Use in Browser
-
-Include via CDN:
-
-```html
-<script src="https://unpkg.com/kaplay@3001.0.12/dist/kaplay.js"></script>
-```
-
-### 📜 TypeScript Global Types
-
-If you're using **TypeScript**, you used `create-kaplay` or installed with a
-package manager and you want **global types**, you can load them using the
-following directive:
-
-```ts
-import "kaplay/global";
-
-vec2(10, 10); // typed!
-```
-
-But it's recommended to use `tsconfig.json` to include the types:
-
-```json
-{
-  "compilerOptions": {
-    "types": ["./node_modules/kaplay/dist/declaration/global.d.ts"]
-  }
-}
-```
-
-> [!WARNING]\
-> If you are publishing a game (and not testing/learning) maybe you don't want
-> to use globals,
-> [see why](https://kaplayjs.com/guides/optimization/#avoid-global-namespace).
-
-You can also use all **KAPLAY** source types importing them:
-
-```js
-import type { TextCompOpt } from "kaplay"
-import type * as KA from "kaplay" // if you prefer a namespace-like import
-
-interface MyTextCompOpt extends KA.TextCompOpt {
-  fallback: string;
-}
-```
+Contributions and design feedback are welcome — open an issue or a discussion!
 
 ## 📚 Resources
 
-### 📖 Docs
+KAPLAY Classy shares its engine internals with KAPLAY, so the upstream docs are
+the best place to learn the underlying concepts:
 
 - [KAPLAY Official Docs](https://kaplayjs.com/docs/)
-- [KAPLAYGROUND](https://play.kaplayjs.com)
+- [KAPLAYGROUND](https://play.kaplayjs.com) — try classic KAPLAY in the browser
+- [KAPLAY Discord Server](https://discord.gg/aQ6RuQm3TF)
 
-### 📺 Tutorials
-
-- 🎥
-  [KAPLAY Library Crash Course by JSLegend ⚔️](https://www.youtube.com/watch?v=FdEYxGoy5_c)
-- 📖
-  [Learn JavaScript basics and KAPLAY to make games quickly](https://jslegenddev.substack.com/p/learn-the-basics-of-javascript-and)
-
-### 💬 Community
-
-- [Discord Server](https://discord.gg/aQ6RuQm3TF)
-- [GitHub Discussions](https://github.com/kaplayjs/kaplay/discussions)
-- [Twitter/X](https://twitter.com/kaplayjs)
-- [BlueSky](https://bsky.app/profile/kaplayjs.com)
-- [Mastodon](https://mastodon.gamedev.place/@kaplay)
-
-## 🎮 Games
-
-Collections of games made with KAPLAY, selected by KAPLAY:
-
-- [Itch.io](https://itch.io/c/4494863/kag-collection)
-- [Newgrounds.com](https://www.newgrounds.com/playlist/379920/kaplay-games)
+The [examples/](./examples) folder shows the classy API in action — run
+`pnpm dev` to play with them.
 
 ## 🙌 Credits
 
-KAPLAY is an open-source project, maintained by the
+KAPLAY Classy is a fork of [KAPLAY](https://github.com/kaplayjs/kaplay), created
+and maintained by the
 [KAPLAY Team and core contributors](https://github.com/kaplayjs/kaplay/wiki/Development-Team)
-and with the support of many
+with the support of many
 [other amazing contributors](https://github.com/kaplayjs/kaplay/graphs/contributors).
+All engine fundamentals — rendering, physics, math, assets — come from their
+excellent work.
 
 ### 🏆 Recognitions
 
@@ -213,3 +281,7 @@ and with the support of many
   [Dungeon Tileset](https://0x72.itch.io/dungeontileset-ii)
 - Thanks to @Minamotion for the `tiny` character sprite used in some of the
   tests
+
+## 📜 License
+
+MIT — same as upstream KAPLAY. See [LICENSE](./LICENSE).

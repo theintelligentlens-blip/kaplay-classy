@@ -1,4 +1,3 @@
-import { burp } from "../audio/burp";
 import { FrameBuffer } from "../gfx/FrameBuffer";
 import { updateViewport } from "../gfx/viewport";
 import { clamp } from "../math/clamp";
@@ -66,10 +65,5 @@ export function initAppEvents() {
             );
         });
         _k.appScope.onKeyPress("f10", () => _k.debug.stepFrame());
-    }
-
-    // burp mode initialization
-    if (_k.globalOpt.burp) {
-        _k.appScope.onKeyPress("b", () => burp());
     }
 }

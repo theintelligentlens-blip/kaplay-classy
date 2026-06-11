@@ -2,6 +2,7 @@ import { Asset, fetchJSON } from "../../assets/asset";
 import { fixURL } from "../../assets/utils";
 import { _k } from "../../shared";
 import type { Comp, CompList, GameObj } from "../../types";
+import { registerDefaultPrefabFactories } from "./defaultPrefabFactories";
 import type { GameObjRaw, InternalGameObjRaw } from "./GameObjRaw";
 
 /**
@@ -28,6 +29,8 @@ export function registerPrefabFactory(
 }
 
 export function deserializePrefabAsset(serializedPrefab: SerializedGameObj) {
+    registerDefaultPrefabFactories();
+
     const list: CompList<unknown> = [];
 
     for (const id in serializedPrefab.components) {
@@ -44,6 +47,8 @@ export function deserializePrefabAsset(serializedPrefab: SerializedGameObj) {
 }
 
 export function deserializeComp(id: string, data: any) {
+    registerDefaultPrefabFactories();
+
     if (id in factoryMethods) {
         return factoryMethods[id](data);
     }

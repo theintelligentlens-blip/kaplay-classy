@@ -88,12 +88,11 @@ export type Game = {
         System[],
         System[],
     ];
+    // Lazily-loaded built-in assets, cached per game (see burp(), addKaboom())
     defaultAssets: {
         ka?: Asset<SpriteData>;
         boom?: Asset<SpriteData>;
-        burp?: SoundData;
-        happy?: string;
-        bean?: string;
+        burp?: Asset<SoundData>;
     };
     logs: DebugLog[];
     cam: CamData;
